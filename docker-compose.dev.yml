@@ -1,0 +1,27 @@
+version: "3.9"
+
+# Lightweight compose file - ONLY Postgres + Redis run in Docker.
+# Django and React keep running natively (python manage.py runserver / npm run dev),
+# exactly as they do now. This avoids touching the working dev workflow.
+
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: recallx_postgres
+    environment:
+      POSTGRES_DB: recallx_db
+      POSTGRES_USER: recallx_user
+      POSTGRES_PASSWORD: recallx_pass
+    ports:
+      - "5434:5432"   # host port 5434 to avoid clashing with any native Postgres
+    volumes:
+      - recallx_pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: recallx_redis
+    ports:
+      - "6380:6379"   # host port 6380 to avoid clashing with anything else
+
+volumes:
+  recallx_pgdata:
