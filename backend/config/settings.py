@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.processing",
     "apps.search",
     "apps.knowledge",
+    "apps.drive",
 ]
 
 MIDDLEWARE = [
@@ -141,3 +142,9 @@ CHUNK_OVERLAP_WORDS = 75
 # Remove these two lines when you set up real Redis for production (Phase 9).
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Google Drive integration
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = "http://localhost:8000/api/drive/callback/"
+os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")  # allow http locally (not https) for dev only

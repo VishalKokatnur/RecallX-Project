@@ -9,6 +9,7 @@ urlpatterns = [
     path("api/files/", include("apps.files.urls")),
     path("api/search/", include("apps.search.urls")),
     path("api/knowledge/", include("apps.knowledge.urls")),
+    path("api/drive/", include("apps.drive.urls")),
 ]
 
 if settings.DEBUG:
