@@ -24,6 +24,8 @@ def detect_file_type(ext: str) -> str:
         return "pdf"
     if ext == ".docx":
         return "docx"
+    if ext == ".pptx":
+        return "pptx"
     if ext == ".txt":
         return "txt"
     if ext == ".wav":

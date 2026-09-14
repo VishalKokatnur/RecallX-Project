@@ -5,12 +5,15 @@ Runs synchronously in dev (CELERY_TASK_ALWAYS_EAGER=True), for real in prod.
 from django.utils import timezone
 from celery import shared_task
 
+import mimetypes
 from .services.pdf_service import extract_text_from_pdf
 from .services.docx_service import extract_text_from_docx
+from .services.pptx_service import extract_text_from_pptx
 from .services.text_cleaner import clean_text
 from .services.chunk_service import chunk_text
 from apps.search.services.embedding_service import embed_image
-
+from apps.drive.models import GoogleDriveToken
+from apps.drive.services import upload_file_to_drive
 @shared_task
 def process_file(file_id: int):
     from apps.files.models import UploadedFile
@@ -28,6 +31,8 @@ def process_file(file_id: int):
             raw_text = extract_text_from_pdf(path)
         elif instance.file_type == "docx":
             raw_text = extract_text_from_docx(path)
+        elif instance.file_type == "pptx":
+            raw_text = extract_text_from_pptx(path)
         elif instance.file_type == "txt":
             with open(path, "r", encoding="utf-8", errors="ignore") as f:
                 raw_text = f.read()
@@ -76,6 +81,24 @@ def process_file(file_id: int):
             img_emb, _ = ImageEmbedding.objects.update_or_create(file=instance, defaults={})
             img_emb.set_embedding(visual_vector)
             img_emb.save()
+            
+        # Google Drive backup (best-effort - a Drive failure should never break the main upload)
+        try:
+            drive_token = GoogleDriveToken.objects.get(user=instance.user)
+            with open(path, "rb") as fh:
+                file_bytes = fh.read()
+            mime_type, _ = mimetypes.guess_type(instance.file.name)
+            mime_type = mime_type or "application/octet-stream"
+            drive_id, drive_link = upload_file_to_drive(
+                drive_token, instance.file_name, file_bytes, mime_type
+            )
+            instance.drive_file_id = drive_id
+            instance.drive_view_link = drive_link
+            instance.save(update_fields=["drive_file_id", "drive_view_link"])
+        except GoogleDriveToken.DoesNotExist:
+            pass  # user hasn't connected Drive - skip silently
+        except Exception:
+            pass  # Drive backup is best-effort - don't fail the whole upload over it
     
     except Exception as e:
         instance.extracted_text = f"[extraction failed: {e}]"

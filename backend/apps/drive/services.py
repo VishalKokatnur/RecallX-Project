@@ -1,7 +1,7 @@
 """
 Google Drive OAuth flow + file upload helpers.
-Uses the narrow 'drive.file' scope - RecallX only ever sees files it uploaded itself,
-never anything else already in the user's Drive.
+Uses `drive.readonly` for user-requested folder imports and `drive.file` so
+RecallX can continue writing only the files it creates in its backup folder.
 """
 from django.conf import settings
 from google_auth_oauthlib.flow import Flow
@@ -10,7 +10,10 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io
 
-SCOPES = ["https://www.googleapis.com/auth/drive.file"]
+SCOPES = [
+    "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/drive.readonly",
+]
 FOLDER_NAME = "RecallX"
 
 
@@ -26,8 +29,8 @@ def _client_config():
     }
 
 
-def build_auth_url(state: str) -> str:
-    """Returns the URL to send the user to, to start the Google consent flow."""
+def build_auth_url(state: str):
+    """Returns (auth_url, code_verifier). The verifier must be saved and reused in the callback."""
     flow = Flow.from_client_config(_client_config(), scopes=SCOPES, state=state)
     flow.redirect_uri = settings.GOOGLE_REDIRECT_URI
     auth_url, _ = flow.authorization_url(
@@ -35,16 +38,16 @@ def build_auth_url(state: str) -> str:
         include_granted_scopes="true",
         prompt="consent",
     )
-    return auth_url
+    return auth_url, flow.code_verifier
 
 
-def exchange_code_for_tokens(code: str) -> Credentials:
+def exchange_code_for_tokens(code: str, code_verifier: str) -> Credentials:
     """Exchanges the authorization code Google sent back for real access/refresh tokens."""
     flow = Flow.from_client_config(_client_config(), scopes=SCOPES)
     flow.redirect_uri = settings.GOOGLE_REDIRECT_URI
+    flow.code_verifier = code_verifier
     flow.fetch_token(code=code)
     return flow.credentials
-
 
 def get_drive_service(token_obj):
     """Builds an authorized Drive API client from a saved GoogleDriveToken."""
@@ -56,6 +59,12 @@ def get_drive_service(token_obj):
         client_secret=settings.GOOGLE_CLIENT_SECRET,
         scopes=SCOPES,
     )
+    return build("drive", "v3", credentials=creds)
+
+
+def get_drive_service_for_access_token(access_token: str):
+    """Builds a Drive client from the short-lived token returned by Google Picker."""
+    creds = Credentials(token=access_token, scopes=SCOPES)
     return build("drive", "v3", credentials=creds)
 
 

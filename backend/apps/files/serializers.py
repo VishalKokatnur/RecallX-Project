@@ -10,6 +10,7 @@ class UploadedFileSerializer(serializers.ModelSerializer):
         fields = [
             "id", "file", "file_name", "file_type",
             "file_size", "processing_status", "created_at", "updated_at", "tags",
+            "drive_view_link",
         ]
         read_only_fields = [
             "file_name", "file_type", "file_size",

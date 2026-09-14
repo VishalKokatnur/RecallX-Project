@@ -21,6 +21,7 @@ class UploadedFile(models.Model):
         ("image", "Image"),
         ("pdf", "PDF"),
         ("docx", "DOCX"),
+        ("pptx", "PPTX"),
         ("txt", "TXT"),
         ("audio", "Audio"),
     ]
@@ -32,6 +33,8 @@ class UploadedFile(models.Model):
     file_size = models.PositiveIntegerField(help_text="Size in bytes")
     processing_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     extracted_text = models.TextField(blank=True, default="")
+    drive_file_id = models.CharField(max_length=255, blank=True, null=True)
+    drive_view_link = models.URLField(max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

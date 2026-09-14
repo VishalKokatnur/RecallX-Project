@@ -129,7 +129,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # File upload constraints (PRD section 25 — Performance Requirements)
 MAX_UPLOAD_SIZE_MB = 20
-ALLOWED_UPLOAD_EXTENSIONS = [".jpg", ".jpeg", ".png", ".pdf", ".txt", ".docx", ".wav"]
+ALLOWED_UPLOAD_EXTENSIONS = [".jpg", ".jpeg", ".png", ".pdf", ".txt", ".docx", ".pptx", ".wav"]
 # Embedding model (PRD FR-09)
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_DIMENSIONS = 384
