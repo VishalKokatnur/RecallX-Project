@@ -35,3 +35,8 @@ flake8>=7.0
 # Production
 gunicorn>=21.2
 whitenoise>=6.6
+
+
+google-auth-oauthlib>=1.2
+google-auth>=2.29
+google-api-python-client>=2.126
