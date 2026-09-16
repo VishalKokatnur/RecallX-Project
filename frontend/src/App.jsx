@@ -12,6 +12,7 @@ import Assistant from "./pages/Assistant.jsx";
 import MemoryMap from "./pages/MemoryMap.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import ChatWidget from "./components/ChatWidget.jsx";
+import Navbar from "./components/Navbar.jsx";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -28,6 +29,7 @@ export default function App() {
 
   return (
     <>
+      {showWidget && <Navbar />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />

@@ -5,7 +5,7 @@ import fileService from "../services/fileService.js";
 import searchService from "../services/searchService.js";
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -20,11 +20,6 @@ export default function Dashboard() {
 
     searchService.getHistory().then(setRecentSearches).catch(() => {});
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   const handleQuickSearch = (e) => {
     e.preventDefault();
@@ -44,72 +39,65 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen p-6 max-w-3xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">RecallX</h1>
-        <button onClick={handleLogout} className="border border-gray-300 rounded-md px-4 py-2 text-sm">
-          Log out
-        </button>
-      </div>
+      <p className="text-muted mb-1">Welcome back, {user?.username}</p>
+      <h1 className="font-display text-3xl mb-6">What are you trying to remember?</h1>
 
-      <p className="text-gray-500 mb-2">Welcome, {user?.username}</p>
-      <h2 className="text-xl font-medium mb-4">What are you trying to remember?</h2>
-
-      <form onSubmit={handleQuickSearch} className="flex gap-2 mb-8">
+      <form onSubmit={handleQuickSearch} className="flex gap-2 mb-10">
         <input
           value={quickQuery}
           onChange={(e) => setQuickQuery(e.target.value)}
           placeholder="Search your memories..."
-          className="flex-1 border rounded-md px-3 py-2"
+          className="flex-1 border border-line rounded-lg px-3 py-2.5 focus:outline-none focus:border-ink transition-colors"
         />
-        <button type="submit" className="bg-black text-white rounded-md px-5 py-2">
+        <button type="submit" className="bg-ink text-paper rounded-lg px-5 py-2.5 hover:bg-ink/90 transition-colors">
           Search
         </button>
       </form>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="border rounded-md p-4 text-center">
-          <p className="text-2xl font-semibold">{counts.total}</p>
-          <p className="text-xs text-gray-500">Total Files</p>
+      <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="border border-line rounded-lg p-5 text-center">
+          <p className="font-display text-3xl">{counts.total}</p>
+          <p className="text-xs text-muted mt-1">Total files</p>
         </div>
-        <div className="border rounded-md p-4 text-center">
-          <p className="text-2xl font-semibold">{counts.images}</p>
-          <p className="text-xs text-gray-500">Screenshots</p>
+        <div className="border border-line rounded-lg p-5 text-center">
+          <p className="font-display text-3xl">{counts.images}</p>
+          <p className="text-xs text-muted mt-1">Screenshots</p>
         </div>
-        <div className="border rounded-md p-4 text-center">
-          <p className="text-2xl font-semibold">{counts.docs}</p>
-          <p className="text-xs text-gray-500">Documents</p>
+        <div className="border border-line rounded-lg p-5 text-center">
+          <p className="font-display text-3xl">{counts.docs}</p>
+          <p className="text-xs text-muted mt-1">Documents</p>
         </div>
       </div>
 
-      <div className="flex gap-3 mb-8">
-        <button onClick={() => navigate("/upload")} className="border rounded-md px-4 py-2 text-sm">
+      <div className="flex gap-3 mb-10">
+        <button onClick={() => navigate("/upload")} className="border border-line rounded-lg px-4 py-2 text-sm hover:border-ink transition-colors">
           Upload a file
         </button>
-        <button onClick={() => navigate("/files")} className="border rounded-md px-4 py-2 text-sm">
+        <button onClick={() => navigate("/files")} className="border border-line rounded-lg px-4 py-2 text-sm hover:border-ink transition-colors">
           View all files
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-10">
         <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Recent uploads</h3>
-          {recentUploads.length === 0 && <p className="text-sm text-gray-400">No files yet.</p>}
-          <ul className="space-y-2">
+          <h2 className="font-medium text-sm mb-3 pb-2 border-b border-line">Recent uploads</h2>
+          {recentUploads.length === 0 && <p className="text-sm text-muted">No files yet.</p>}
+          <ul>
             {recentUploads.map((f) => (
-              <li key={f.id} className="text-sm border rounded-md p-2 flex justify-between">
+              <li key={f.id} className="flex justify-between items-center text-sm py-2.5 border-b border-line last:border-0">
                 <span className="truncate">{f.file_name}</span>
-                <span className="text-gray-400 text-xs shrink-0 ml-2">{f.file_type}</span>
+                <span className="text-muted text-xs shrink-0 ml-2">{f.file_type}</span>
               </li>
             ))}
           </ul>
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Recent searches</h3>
-          {recentSearches.length === 0 && <p className="text-sm text-gray-400">No searches yet.</p>}
-          <ul className="space-y-2">
+          <h2 className="font-medium text-sm mb-3 pb-2 border-b border-line">Recent searches</h2>
+          {recentSearches.length === 0 && <p className="text-sm text-muted">No searches yet.</p>}
+          <ul>
             {recentSearches.map((s) => (
-              <li key={s.id} className="text-sm border rounded-md p-2 truncate">
+              <li key={s.id} className="text-sm py-2.5 border-b border-line last:border-0 truncate text-muted">
                 "{s.query}"
               </li>
             ))}

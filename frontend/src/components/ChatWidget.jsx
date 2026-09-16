@@ -1,6 +1,48 @@
 import { useState, useRef, useEffect } from "react";
 import searchService from "../services/searchService.js";
 
+function RobotIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <line x1="2.5" y1="10" x2="2.5" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="21.5" y1="10" x2="21.5" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12 3v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="2" r="1" fill="currentColor" />
+      <rect x="5" y="6" width="14" height="13" rx="4" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="9.5" cy="12.5" r="1.3" fill="currentColor" />
+      <circle cx="14.5" cy="12.5" r="1.3" fill="currentColor" />
+      <path d="M9 15.5c1 1 5 1 6 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function Avatar({ size = 36, iconSize }) {
+  return (
+    <div
+      className="shrink-0 rounded-full bg-black text-white flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <RobotIcon size={iconSize ?? Math.round(size * 0.55)} />
+    </div>
+  );
+}
+
+function CloseIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+      <path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -8,13 +50,37 @@ export default function ChatWidget() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showHint, setShowHint] = useState(() => {
+    try {
+      return !localStorage.getItem("recallx_chat_hint_dismissed");
+    } catch {
+      return true;
+    }
+  });
   const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const dismissHint = () => {
+    setShowHint(false);
+    try {
+      localStorage.setItem("recallx_chat_hint_dismissed", "1");
+    } catch {}
+  };
 
   useEffect(() => {
-    if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!showHint) return;
+    const timer = setTimeout(dismissHint, 8000);
+    return () => clearTimeout(timer);
+  }, [showHint]);
+
+  useEffect(() => {
+    if (open) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      inputRef.current?.focus();
+    }
   }, [messages, loading, open]);
 
-    const SMALL_TALK = {
+  const SMALL_TALK = {
     "thank you": "You're welcome! Let me know if there's anything else you'd like to find.",
     "thanks": "Anytime! Happy to help you find what you're looking for.",
     "thank you so much": "You're so welcome! Come back anytime you need to find something.",
@@ -27,6 +93,16 @@ export default function ChatWidget() {
     "good": "Glad to hear it! Anything else I can help you find?",
     "cool": "Glad that helped! Let me know what else you need.",
     "nice": "Glad you liked it! Anything else you're looking for?",
+    "good morning": "Hey very good morning, how can i help you",
+    "good afternoon": "Hey very good afternoon, how can i help you",
+    "good evening": "Hey very good evening, how can i help you",
+    "good night": "Hey good night, see you later",
+    "hey good morning": "Hey very good morning, how can i help you",
+    "hey good afternoon": "Hey very good afternoon, how can i help you",
+    "hey good evening": "Hey very good evening, how can i help you",
+    "hey good night": "Hey good night, see you later",
+    "how are you":"Yeah i am pretty good thank you",
+
   };
 
   const handleSend = async (e) => {
@@ -65,75 +141,141 @@ export default function ChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
-      {open && (
-        <div className="mb-3 w-80 h-[28rem] bg-white border rounded-2xl shadow-xl flex flex-col overflow-hidden">
-          <div className="bg-black text-white px-4 py-3 flex justify-between items-center">
-            <span className="text-sm font-medium">RecallX Assistant</span>
-            <button onClick={() => setOpen(false)} className="text-white text-lg leading-none">×</button>
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
+      <div
+        className={`mb-3 w-[360px] h-[500px] bg-white border border-gray-200 rounded-[20px] shadow-2xl flex flex-col overflow-hidden origin-bottom-right transition-all duration-200 ease-out ${
+          open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+        }`}
+      >
+        <div className="bg-black text-white px-4 py-3 flex items-center gap-3">
+          <Avatar size={30} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium leading-tight">RecallX Assistant</p>
+            <p className="text-[11px] text-gray-400 leading-tight">Ask about anything you've saved</p>
           </div>
+          <button
+            onClick={() => setOpen(false)}
+            className="text-gray-400 hover:text-white transition-colors p-1"
+            aria-label="Close chat"
+          >
+            <CloseIcon />
+          </button>
+        </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[85%] rounded-xl px-3 py-2 text-xs ${
-                    m.role === "user" ? "bg-black text-white" : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  <p>{m.text}</p>
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          {messages.map((m, i) => (
+            <div key={i} className={`flex gap-2 animate-fade-in-up ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              {m.role === "ai" && <Avatar size={24} />}
+              <div
+                className={`max-w-[78%] px-3 py-2 text-[13px] leading-relaxed ${
+                  m.role === "user"
+                    ? "bg-black text-white rounded-2xl rounded-br-sm"
+                    : "bg-gray-100 text-gray-800 rounded-2xl rounded-bl-sm"
+                }`}
+              >
+                <p>{m.text}</p>
 
-                  {m.sources && m.sources.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {m.sources.map((s) => (
-                        <div key={s.file_id} className="bg-white border rounded-lg p-2">
-                          <p className="font-medium truncate">{s.file_name}</p>
-                          <p className="text-[10px] text-gray-400 mb-1">{s.file_type} - {(s.score * 100).toFixed(0)}%</p>
-                          {s.file_url && (
-                            <div className="flex gap-2">
-                              <a href={s.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View</a>
-                              <a href={s.file_url} download className="text-blue-600 hover:underline">Download</a>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {m.sources && m.sources.length > 0 && (
+                  <div className="mt-2 space-y-1.5">
+                    {m.sources.map((s) => (
+                      <div
+                        key={s.file_id}
+                        className="bg-white border border-gray-200 rounded-xl p-2 hover:border-gray-300 transition-colors"
+                      >
+                        <p className="font-medium truncate text-gray-900">{s.file_name}</p>
+                        <p className="text-[10px] text-gray-400 mb-1">
+                          {s.file_type} - {(s.score * 100).toFixed(0)}% match
+                        </p>
+                        {s.file_url && (
+                          <div className="flex gap-3">
+                            <a href={s.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-[11px]">
+                              View
+                            </a>
+                            <a href={s.file_url} download className="text-blue-600 hover:underline text-[11px]">
+                              Download
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-xl px-3 py-2 text-xs text-gray-500">Thinking...</div>
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
+            </div>
+          ))}
 
-          <form onSubmit={handleSend} className="p-2 border-t flex gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              className="flex-1 border rounded-full px-3 py-1.5 text-xs"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-black text-white rounded-full px-3 py-1.5 text-xs disabled:opacity-50"
-            >
-              Send
-            </button>
-          </form>
+          {loading && (
+            <div className="flex gap-2 justify-start animate-fade-in-up">
+              <Avatar size={24} />
+              <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-3 py-2.5 flex items-center gap-1">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"
+                    style={{ animationDelay: `${i * 120}ms` }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        <form onSubmit={handleSend} className="p-2.5 border-t border-gray-100 flex gap-2">
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 border border-gray-200 rounded-full px-3.5 py-2 text-[13px] focus:outline-none focus:border-gray-400 transition-colors"
+          />
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="w-9 h-9 shrink-0 rounded-full bg-black text-white flex items-center justify-center disabled:opacity-30 hover:bg-gray-900 active:scale-95 transition-all"
+            aria-label="Send message"
+          >
+            <SendIcon />
+          </button>
+        </form>
+      </div>
+
+      {showHint && !open && (
+        <div className="mb-3 flex items-center gap-1.5 justify-end animate-fade-in-up">
+          <button
+            onClick={() => {
+              setOpen(true);
+              dismissHint();
+            }}
+            className="bg-white border border-gray-200 rounded-2xl rounded-br-sm px-3.5 py-2.5 shadow-lg text-[13px] text-gray-800 hover:border-gray-300 transition-colors text-left max-w-[220px]"
+          >
+            Looking for something? Ask me — I can search everything you've saved.
+          </button>
+          <button
+            onClick={dismissHint}
+            className="text-gray-300 hover:text-gray-500 transition-colors shrink-0"
+            aria-label="Dismiss"
+          >
+            <CloseIcon size={14} />
+          </button>
         </div>
       )}
 
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="w-14 h-14 rounded-full bg-black text-white text-2xl shadow-lg flex items-center justify-center"
-      >
-        {open ? "×" : "💬"}
-      </button>
+      <div className="relative">
+        {showHint && !open && (
+          <span className="absolute inset-0 rounded-full bg-black opacity-20 animate-ping pointer-events-none" />
+        )}
+        <button
+          onClick={() => {
+            setOpen((o) => !o);
+            dismissHint();
+          }}
+          className="relative w-14 h-14 rounded-full bg-black text-white shadow-lg flex items-center justify-center hover:bg-gray-900 active:scale-95 transition-all"
+          aria-label={open ? "Close chat" : "Open chat"}
+        >
+          {open ? <CloseIcon size={20} /> : <RobotIcon size={26} />}
+        </button>
+      </div>
     </div>
   );
 }

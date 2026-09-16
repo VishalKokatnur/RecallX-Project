@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -75,11 +76,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+import dj_database_url
+
+# Falls back to local SQLite if DATABASE_URL isn't set (e.g. local dev without Postgres).
+# On Render, set DATABASE_URL to your Neon connection string (include ?sslmode=require).
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=os.getenv("DATABASE_URL", "").startswith("postgres"),
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -105,9 +111,9 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
-]
+CORS_ALLOWED_ORIGINS = os.getenv(
+    "CORS_ALLOWED_ORIGINS", "http://localhost:5173"
+).split(",")
 
 # Celery / Redis
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
@@ -123,7 +129,16 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "static"
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(BASE_DIR / "media"))
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -146,5 +161,8 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # Google Drive integration
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = "http://localhost:8000/api/drive/callback/"
-os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")  # allow http locally (not https) for dev only
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/drive/callback/")
+if GOOGLE_REDIRECT_URI.startswith("http://") and "localhost" not in GOOGLE_REDIRECT_URI:
+    os.environ.pop("OAUTHLIB_INSECURE_TRANSPORT", None)
+else:
+    os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")  # allow http locally (not https) for dev only

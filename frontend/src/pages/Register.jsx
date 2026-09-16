@@ -28,52 +28,72 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm">
-        <h1 className="text-2xl font-semibold mb-6">Create your RecallX account</h1>
+    <div className="min-h-screen grid md:grid-cols-2">
+      <div className="hidden md:flex flex-col justify-between bg-ink text-paper p-12">
+        <Link to="/" className="font-display text-lg font-semibold">RecallX</Link>
+        <div>
+          <p className="font-display text-3xl leading-snug mb-4">
+            Your personal archive, one upload away.
+          </p>
+          <p className="text-paper/60 text-sm max-w-xs">
+            Every file you save becomes searchable by meaning, automatically.
+          </p>
+        </div>
+        <p className="text-paper/40 text-xs">&copy; RecallX</p>
+      </div>
 
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      <div className="flex items-center justify-center p-6 bg-paper">
+        <form onSubmit={handleSubmit} className="w-full max-w-sm">
+          <h1 className="font-display text-2xl mb-8">Create your account</h1>
 
-        <input
-          name="username"
-          placeholder="Username"
-          value={form.username}
-          onChange={handleChange}
-          required
-          className="w-full border rounded-md px-3 py-2 mb-3"
-        />
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-          className="w-full border rounded-md px-3 py-2 mb-3"
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          required
-          minLength={8}
-          className="w-full border rounded-md px-3 py-2 mb-4"
-        />
+          {error && <p className="text-danger text-sm mb-4 break-words">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-black text-white rounded-md py-2 font-medium disabled:opacity-50"
-        >
-          {loading ? "Creating account..." : "Register"}
-        </button>
+          <label className="block text-sm text-muted mb-1">Username</label>
+          <input
+            name="username"
+            placeholder="you@example.com"
+            value={form.username}
+            onChange={handleChange}
+            required
+            className="w-full border border-line rounded-lg px-3 py-2 mb-4 focus:outline-none focus:border-ink transition-colors"
+          />
 
-        <p className="text-sm text-center mt-4">
-          Already have an account? <Link to="/login" className="underline">Log in</Link>
-        </p>
-      </form>
+          <label className="block text-sm text-muted mb-1">Email</label>
+          <input
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="w-full border border-line rounded-lg px-3 py-2 mb-4 focus:outline-none focus:border-ink transition-colors"
+          />
+
+          <label className="block text-sm text-muted mb-1">Password</label>
+          <input
+            name="password"
+            type="password"
+            placeholder="At least 8 characters"
+            value={form.password}
+            onChange={handleChange}
+            required
+            minLength={8}
+            className="w-full border border-line rounded-lg px-3 py-2 mb-6 focus:outline-none focus:border-ink transition-colors"
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-ink text-paper rounded-lg py-2.5 font-medium hover:bg-ink/90 transition-colors disabled:opacity-50"
+          >
+            {loading ? "Creating account..." : "Register"}
+          </button>
+
+          <p className="text-sm text-muted text-center mt-6">
+            Already have an account? <Link to="/login" className="text-ink underline underline-offset-2">Log in</Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
