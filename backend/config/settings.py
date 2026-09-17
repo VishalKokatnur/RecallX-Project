@@ -166,3 +166,32 @@ if GOOGLE_REDIRECT_URI.startswith("http://") and "localhost" not in GOOGLE_REDIR
     os.environ.pop("OAUTHLIB_INSECURE_TRANSPORT", None)
 else:
     os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")  # allow http locally (not https) for dev only
+
+
+# Make unhandled exceptions (500 errors) print their full traceback to the
+# console/logs, instead of Django's default of silently emailing admins.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
