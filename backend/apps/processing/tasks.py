@@ -76,11 +76,16 @@ def process_file(file_id: int):
 
         
         # Visual search: generate CLIP image embedding for images only
+        # (best-effort - CLIP isn't reliably available on the free Hugging
+        # Face tier, and a failure here should never break the main upload)
         if instance.file_type == "image":
-            visual_vector = embed_image(path)
-            img_emb, _ = ImageEmbedding.objects.update_or_create(file=instance, defaults={})
-            img_emb.set_embedding(visual_vector)
-            img_emb.save()
+            try:
+                visual_vector = embed_image(path)
+                img_emb, _ = ImageEmbedding.objects.update_or_create(file=instance, defaults={})
+                img_emb.set_embedding(visual_vector)
+                img_emb.save()
+            except Exception:
+                pass
             
         # Google Drive backup (best-effort - a Drive failure should never break the main upload)
         try:
