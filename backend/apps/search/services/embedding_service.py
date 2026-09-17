@@ -13,8 +13,7 @@ import time
 import requests
 
 HF_API_TOKEN = os.environ.get("HF_API_TOKEN", "")
-HF_API_URL = "https://api-inference.huggingface.co/models/{model}"
-
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/{model}/pipeline/feature-extraction"
 TEXT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 CLIP_MODEL = "sentence-transformers/clip-ViT-B-32"
 
