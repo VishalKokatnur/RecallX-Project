@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import searchService from "../services/searchService.js";
-
+import { openFile, downloadFile } from "../utils/openFile.js";
 function RobotIcon({ size = 16 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -188,12 +188,12 @@ export default function ChatWidget() {
                         </p>
                         {s.file_url && (
                           <div className="flex gap-3">
-                            <a href={s.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-[11px]">
+                            <button onClick={() => openFile(s.file_url)} className="text-blue-600 hover:underline text-[11px]">
                               View
-                            </a>
-                            <a href={s.file_url} download className="text-blue-600 hover:underline text-[11px]">
+                            </button>
+                            <button onClick={() => downloadFile(s.file_url, s.file_name)} className="text-blue-600 hover:underline text-[11px]">
                               Download
-                            </a>
+                            </button>
                           </div>
                         )}
                       </div>

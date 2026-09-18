@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import searchService from "../services/searchService.js";
-
+import { openFile, downloadFile } from "../utils/openFile.js";
 export default function Assistant() {
   const [messages, setMessages] = useState([
     { role: "ai", text: "Hi! How can I help you? Ask me about anything you've saved." },
@@ -63,12 +63,12 @@ export default function Assistant() {
                       <p className="text-xs text-gray-400 mb-2">{s.file_type} - {(s.score * 100).toFixed(0)}% match</p>
                       {s.file_url ? (
                         <div className="flex gap-3">
-                          <a href={s.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                          <button onClick={() => openFile(s.file_url)} className="text-xs text-blue-600 hover:underline">
                             View
-                          </a>
-                          <a href={s.file_url} download className="text-xs text-blue-600 hover:underline">
+                          </button>
+                          <button onClick={() => downloadFile(s.file_url, s.file_name)} className="text-xs text-blue-600 hover:underline">
                             Download
-                          </a>
+                          </button>
                         </div>
                       ) : (
                         <p className="text-xs text-gray-400">No file attached</p>

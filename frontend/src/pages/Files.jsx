@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import fileService from "../services/fileService.js";
+import { openFile } from "../utils/openFile.js";
+import AuthImage from "../components/AuthImage.jsx";
 
 export default function Files() {
   const [files, setFiles] = useState([]);
@@ -64,7 +66,7 @@ export default function Files() {
         {sortedFiles.map((f) => (
           <li key={f.id} className="flex items-center gap-4 py-4 border-b border-line last:border-0">
             {f.file_type === "image" ? (
-              <img src={f.download_url} alt={f.file_name} className="w-12 h-12 object-cover rounded-lg border border-line shrink-0" />
+              <AuthImage src={f.download_url} alt={f.file_name} className="w-12 h-12 object-cover rounded-lg border border-line shrink-0" />
             ) : (
               <div className="w-12 h-12 rounded-lg border border-line shrink-0 flex items-center justify-center text-[10px] text-muted uppercase">
                 {f.file_type}
@@ -85,7 +87,7 @@ export default function Files() {
               )}
             </div>
 
-            <a href={f.download_url} target="_blank" rel="noopener noreferrer" className="text-sm text-ink underline underline-offset-2 shrink-0">View</a>
+            <button onClick={() => openFile(f.download_url)} className="text-sm text-ink underline underline-offset-2 shrink-0">View</button>
 
             <button onClick={() => handleDelete(f.id)} className="text-sm text-danger hover:underline shrink-0">Delete</button>
           </li>

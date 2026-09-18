@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import fileService from "../services/fileService.js";
+import { openFile } from "../utils/openFile.js";
+import AuthImage from "../components/AuthImage.jsx";
 
 function groupByMonth(files) {
   const groups = {};
@@ -42,7 +44,7 @@ export default function Timeline() {
                 <div key={f.id} className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-black -ml-[21px]"></div>
                   {f.file_type === "image" ? (
-                    <img src={f.download_url} alt={f.file_name} className="w-10 h-10 object-cover rounded-md border" />
+                    <AuthImage src={f.download_url} alt={f.file_name} className="w-10 h-10 object-cover rounded-md border" />
                   ) : (
                     <div className="w-10 h-10 rounded-md border flex items-center justify-center text-[10px] text-gray-400 uppercase">
                       {f.file_type}
@@ -54,9 +56,9 @@ export default function Timeline() {
                       {new Date(f.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
                     </p>
                   </div>
-                  <a href={f.download_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline shrink-0">
+                  <button onClick={() => openFile(f.download_url)} className="text-xs text-blue-600 hover:underline shrink-0">
                     View
-                  </a>
+                  </button>
                 </div>
               ))}
             </div>
