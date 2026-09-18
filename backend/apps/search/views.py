@@ -9,6 +9,17 @@ from .services.date_filter_service import parse_date_filter
 from .models import SearchHistory
 
 
+def _download_url(request, uploaded_file):
+    """
+    Build a link through the dedicated /api/files/{id}/download/ endpoint
+    rather than the raw /media/ static URL, which isn't reliably served in
+    this production environment.
+    """
+    if not uploaded_file:
+        return None
+    return request.build_absolute_uri(f"/api/files/{uploaded_file.id}/download/")
+
+
 class SemanticSearchView(APIView):
     """FR-11/FR-12: POST /api/search/ - text search + visual (CLIP) search for images."""
     permission_classes = [permissions.IsAuthenticated]
@@ -34,7 +45,7 @@ class SemanticSearchView(APIView):
                 "matched_text": chunk.chunk_text,
                 "upload_date": chunk.document.file.created_at,
                 "match_type": "text",
-                "file_url": request.build_absolute_uri(chunk.document.file.file.url) if chunk.document.file.file else None,
+                "file_url": _download_url(request, chunk.document.file),
                 "drive_view_link": chunk.document.file.drive_view_link,
             }
             for chunk, score in text_results
@@ -64,7 +75,7 @@ class SemanticSearchView(APIView):
                     "matched_text": "(matched by visual appearance)",
                     "upload_date": img_emb.file.created_at,
                     "match_type": "visual",
-                    "file_url": request.build_absolute_uri(img_emb.file.file.url) if img_emb.file.file else None,
+                    "file_url": _download_url(request, img_emb.file),
                     "drive_view_link": img_emb.file.drive_view_link,
                 })
 
@@ -123,7 +134,7 @@ class AssistantView(APIView):
                     "file_type": f.file_type,
                     "score": score,
                     "snippet": chunk.chunk_text[:220],
-                    "file_url": request.build_absolute_uri(f.file.url) if f.file else None,
+                    "file_url": _download_url(request, f),
                 }
 
         # 2) Visual (CLIP) search - catches image queries text search would miss
@@ -135,7 +146,6 @@ class AssistantView(APIView):
             # Face tier - degrade gracefully to text-only results rather
             # than failing the whole request.
             visual_results = []
-
         for img_emb, score in visual_results:
             if score < CONFIDENCE_THRESHOLD:
                 continue
@@ -147,7 +157,7 @@ class AssistantView(APIView):
                     "file_type": f.file_type,
                     "score": score,
                     "snippet": "(matched by visual appearance)",
-                    "file_url": request.build_absolute_uri(f.file.url) if f.file else None,
+                    "file_url": _download_url(request, f),
                 }
 
         # 3) Direct filename matching - catches "do you have frontside.png" style questions
@@ -163,7 +173,7 @@ class AssistantView(APIView):
                             "file_type": f.file_type,
                             "score": 0.5,
                             "snippet": "(matched by file name)",
-                            "file_url": request.build_absolute_uri(f.file.url) if f.file else None,
+                            "file_url": _download_url(request, f),
                         }
 
         if not seen_files:
