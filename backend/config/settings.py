@@ -115,6 +115,11 @@ CORS_ALLOWED_ORIGINS = os.getenv(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173"
 ).split(",")
 
+# Base URL of the frontend app, used for redirects after flows like Google
+# OAuth (Google itself never sees this - it's where we send the user's
+# browser back to once our own backend is done).
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
 # Celery / Redis
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = os.getenv("REDIS_PORT", "6379")

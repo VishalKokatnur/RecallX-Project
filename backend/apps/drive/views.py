@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
@@ -88,8 +89,7 @@ class DriveCallbackView(APIView):
         state = request.GET.get("state")
 
         if not code or not state:
-            return redirect("http://localhost:5173/profile?drive=error")
-
+            return redirect(f"{settings.FRONTEND_URL}/profile?drive=error")
         try:
             user = User.objects.get(id=int(state))
             code_verifier = cache.get(f"drive_verifier_{user.id}")
@@ -109,10 +109,9 @@ class DriveCallbackView(APIView):
         except Exception as e:
             import traceback
             traceback.print_exc()  # TEMP: print the real error to the terminal for debugging
-            return redirect("http://localhost:5173/profile?drive=error")
+            return redirect(f"{settings.FRONTEND_URL}/profile?drive=error")
 
-        return redirect("http://localhost:5173/profile?drive=connected")
-
+        return redirect(f"{settings.FRONTEND_URL}/profile?drive=connected")
 
 class DriveStatusView(APIView):
     """GET /api/drive/status/ - tells the frontend whether the user has connected Drive."""
