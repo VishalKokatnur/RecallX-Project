@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.utils import timezone
+from datetime import timezone as dt_timezone
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -96,7 +97,7 @@ class DriveCallbackView(APIView):
             creds = services.exchange_code_for_tokens(code, code_verifier)
             expiry = creds.expiry
             if expiry and timezone.is_naive(expiry):
-                expiry = timezone.make_aware(expiry, timezone.utc)
+                expiry = timezone.make_aware(expiry, dt_timezone.utc)
 
             GoogleDriveToken.objects.update_or_create(
                 user=user,
