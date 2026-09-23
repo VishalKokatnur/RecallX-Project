@@ -754,6 +754,11 @@ export default function ChatWidget() {
 
     "im back":
       "Welcome back! 😊 Ready when you are.",
+
+
+    "i love you":
+      "hey sorry i love vishal. he is mine"
+
   };
 
 
