@@ -883,15 +883,12 @@ export default function ChatWidget() {
   */
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
-
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end pointer-events-none">
       {/* CHAT WINDOW */}
       <div
-        className={`mb-3 w-[360px] h-[500px] bg-white border border-gray-200 rounded-[20px] shadow-2xl flex flex-col overflow-hidden origin-bottom-right transition-all duration-200 ease-out ${
-          open
-            ? "opacity-100 scale-100"
-            : "opacity-0 scale-95 pointer-events-none"
-        }`}
+        className={`mb-3 w-[360px] h-[500px] bg-white border border-gray-200 rounded-[20px] shadow-2xl flex flex-col overflow-hidden origin-bottom-right transition-all duration-200 ease-out pointer-events-auto ${
+  open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+}`}
       >
 
         {/* HEADER */}
@@ -1057,8 +1054,7 @@ export default function ChatWidget() {
 
       {/* HINT */}
       {showHint && !open && (
-        <div className="mb-3 flex items-center gap-1.5 justify-end animate-fade-in-up">
-
+<div className="mb-3 flex items-center gap-1.5 justify-end animate-fade-in-up pointer-events-auto">
           <button
             onClick={() => {
               setOpen(true);
@@ -1083,8 +1079,7 @@ export default function ChatWidget() {
 
 
       {/* CHAT BUTTON */}
-      <div className="relative">
-
+<div className="relative pointer-events-auto">
         {showHint && !open && (
           <span className="absolute inset-0 rounded-full bg-black opacity-20 animate-ping pointer-events-none" />
         )}
