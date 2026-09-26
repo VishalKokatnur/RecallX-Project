@@ -84,12 +84,12 @@ export default function Search() {
       <ul className="space-y-3">
         {results.map((r, i) => (
           <li key={i} className="border rounded-md p-4">
-            <div className="flex justify-between items-start mb-1">
-              <p className="font-medium">{r.file_name}</p>
-              <span className="text-xs text-gray-400 shrink-0 ml-2">
-                {(r.similarity_score * 100).toFixed(0)}% match
-              </span>
-            </div>
+            <div className="flex justify-between items-start mb-1 gap-2">
+  <p className="font-medium min-w-0 truncate">{r.file_name}</p>
+  <span className="text-xs text-gray-400 shrink-0 whitespace-nowrap">
+    {(r.similarity_score * 100).toFixed(0)}% match
+  </span>
+</div>
             <p className="text-xs text-gray-400 mb-2">{r.file_type}</p>
             <p className="text-sm text-gray-600 line-clamp-3 mb-3">{r.matched_text}</p>
 
