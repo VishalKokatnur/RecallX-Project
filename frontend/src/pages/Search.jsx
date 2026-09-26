@@ -36,29 +36,29 @@ export default function Search() {
       <h1 className="text-2xl font-semibold mb-2">What are you trying to remember?</h1>
       <p className="text-gray-500 mb-6">Search your files by meaning, not keywords.</p>
 
-      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Find that Docker deployment guide I saved..."
-          className="flex-1 border rounded-md px-3 py-2"
-        />
-        <select
-          value={fileType}
-          onChange={(e) => setFileType(e.target.value)}
-          className="border rounded-md px-2 py-2 text-sm"
-        >
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 mb-4">
+  <input
+    value={query}
+    onChange={(e) => setQuery(e.target.value)}
+    placeholder="Find that Docker deployment guide I saved..."
+    className="flex-1 border rounded-md px-3 py-2 w-full"
+  />
+  <select
+    value={fileType}
+    onChange={(e) => setFileType(e.target.value)}
+    className="border rounded-md px-2 py-2 text-sm w-full sm:w-auto"
+  >
           <option value="">All types</option>
           <option value="image">Image</option>
           <option value="pdf">PDF</option>
           <option value="docx">DOCX</option>
           <option value="txt">TXT</option>
         </select>
-                <select
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-          className="border rounded-md px-2 py-2 text-sm"
-        >
+                <button
+  type="submit"
+  disabled={loading}
+  className="bg-black text-white rounded-md px-5 py-2 disabled:opacity-50 w-full sm:w-auto"
+>
           <option value="">Any time</option>
           <option value="today">Today</option>
           <option value="yesterday">Yesterday</option>
