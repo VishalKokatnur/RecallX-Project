@@ -65,7 +65,7 @@ export default function Search() {
           <option value="last_week">Last week</option>
           <option value="last_month">Last month</option>
           <option value="last_year">Last year</option>
-        </select>
+        </button>
         <button
           type="submit"
           disabled={loading}
