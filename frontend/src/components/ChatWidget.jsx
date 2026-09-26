@@ -886,8 +886,8 @@ export default function ChatWidget() {
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end pointer-events-none">
       {/* CHAT WINDOW */}
       <div
-        className={`mb-3 w-[360px] h-[500px] bg-white border border-gray-200 rounded-[20px] shadow-2xl flex flex-col overflow-hidden origin-bottom-right transition-all duration-200 ease-out pointer-events-auto ${
-  open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+        className={`mb-3 w-[360px] h-[500px] bg-white border border-gray-200 rounded-[20px] shadow-2xl flex flex-col overflow-hidden origin-bottom-right transition-all duration-200 ease-out ${
+  open ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
 }`}
       >
 
