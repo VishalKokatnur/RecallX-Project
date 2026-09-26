@@ -37,39 +37,39 @@ export default function Search() {
       <p className="text-gray-500 mb-6">Search your files by meaning, not keywords.</p>
 
       <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 mb-4">
-  <input
-    value={query}
-    onChange={(e) => setQuery(e.target.value)}
-    placeholder="Find that Docker deployment guide I saved..."
-    className="flex-1 border rounded-md px-3 py-2 w-full"
-  />
-  <select
-    value={fileType}
-    onChange={(e) => setFileType(e.target.value)}
-    className="border rounded-md px-2 py-2 text-sm w-full sm:w-auto"
-  >
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Find that Docker deployment guide I saved..."
+          className="flex-1 border rounded-md px-3 py-2 w-full"
+        />
+        <select
+          value={fileType}
+          onChange={(e) => setFileType(e.target.value)}
+          className="border rounded-md px-2 py-2 text-sm w-full sm:w-auto"
+        >
           <option value="">All types</option>
           <option value="image">Image</option>
           <option value="pdf">PDF</option>
           <option value="docx">DOCX</option>
           <option value="txt">TXT</option>
         </select>
-                <button
-  type="submit"
-  disabled={loading}
-  className="bg-black text-white rounded-md px-5 py-2 disabled:opacity-50 w-full sm:w-auto"
->
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="border rounded-md px-2 py-2 text-sm w-full sm:w-auto"
+        >
           <option value="">Any time</option>
           <option value="today">Today</option>
           <option value="yesterday">Yesterday</option>
           <option value="last_week">Last week</option>
           <option value="last_month">Last month</option>
           <option value="last_year">Last year</option>
-        </button>
+        </select>
         <button
           type="submit"
           disabled={loading}
-          className="bg-black text-white rounded-md px-5 py-2 disabled:opacity-50"
+          className="bg-black text-white rounded-md px-5 py-2 disabled:opacity-50 w-full sm:w-auto"
         >
           {loading ? "..." : "Search"}
         </button>
@@ -94,21 +94,22 @@ export default function Search() {
             <p className="text-sm text-gray-600 line-clamp-3 mb-3">{r.matched_text}</p>
 
             {(r.file_url || r.drive_view_link) && (
-  <div className="flex gap-4">
-    {r.file_url ? (
-      <button onClick={() => openFile(r.file_url)} className="text-sm text-blue-600 hover:underline">
-        View
-      </button>
-    ) : (
-      <a href={r.drive_view_link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
-        View
-      </a>
-    )}
-    {r.file_url && (
-      <button onClick={() => downloadFile(r.file_url, r.file_name)} className="text-sm text-blue-600 hover:underline">
-        Download
-      </button>
-    )}          </div>
+              <div className="flex gap-4">
+                {r.file_url ? (
+                  <button onClick={() => openFile(r.file_url)} className="text-sm text-blue-600 hover:underline">
+                    View
+                  </button>
+                ) : (
+                  <a href={r.drive_view_link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                    View
+                  </a>
+                )}
+                {r.file_url && (
+                  <button onClick={() => downloadFile(r.file_url, r.file_name)} className="text-sm text-blue-600 hover:underline">
+                    Download
+                  </button>
+                )}
+              </div>
             )}
           </li>
         ))}
