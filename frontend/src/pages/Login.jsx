@@ -69,7 +69,7 @@ export default function Login() {
             className="w-full border border-line rounded-lg px-3 py-2 mb-6 focus:outline-none focus:border-ink transition-colors"
           />
 
-          <button
+                    <button
             type="submit"
             disabled={loading}
             className="w-full bg-ink text-paper rounded-lg py-2.5 font-medium hover:bg-ink/90 transition-colors disabled:opacity-50"
@@ -77,7 +77,11 @@ export default function Login() {
             {loading ? "Logging in..." : "Log in"}
           </button>
 
-          <p className="text-sm text-muted text-center mt-6">
+          <p className="text-sm text-center mt-4">
+            <Link to="/forgot-password" className="text-muted underline underline-offset-2">Forgot password?</Link>
+          </p>
+
+          <p className="text-sm text-muted text-center mt-2">
             No account? <Link to="/register" className="text-ink underline underline-offset-2">Register</Link>
           </p>
         </form>

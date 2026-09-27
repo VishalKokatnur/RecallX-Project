@@ -13,6 +13,9 @@ import MemoryMap from "./pages/MemoryMap.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import ChatWidget from "./components/ChatWidget.jsx";
 import Navbar from "./components/Navbar.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
+
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -24,8 +27,7 @@ function ProtectedRoute({ children }) {
 export default function App() {
   const { user } = useAuth();
   const location = useLocation();
-  const publicPages = ["/", "/login", "/register"];
-  const showWidget = user && !publicPages.includes(location.pathname);
+  const publicPages = ["/", "/login", "/register", "/forgot-password"];  const showWidget = user && !publicPages.includes(location.pathname);
 
   return (
     <>
@@ -34,6 +36,9 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
+
 
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />

@@ -15,6 +15,14 @@ const authService = {
     const { data } = await api.get("/auth/profile/");
     return data;
   },
+  async requestPasswordReset(email) {
+    const { data } = await api.post("/auth/password-reset/", { email });
+    return data;
+  },
+  async confirmPasswordReset({ uid, token, new_password }) {
+    const { data } = await api.post("/auth/password-reset-confirm/", { uid, token, new_password });
+    return data;
+  },
   logout() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
