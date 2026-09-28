@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,6 +12,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
 from .serializers import RegisterSerializer, UserSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class RegisterView(generics.CreateAPIView):
@@ -71,28 +75,31 @@ class PasswordResetRequestView(APIView):
         if not email:
             return generic_response
 
-        try:
-            user = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
-            # Always return the same response so we never reveal which emails are registered
-            return generic_response
+        # Emails aren't guaranteed unique in Django's User model, so handle 0, 1 or many matches
+        users = User.objects.filter(email__iexact=email, is_active=True)
 
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
+        for user in users:
+            try:
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
 
-        send_mail(
-            subject="Reset your RecallX password",
-            message=(
-                f"Hi {user.username},\n\n"
-                f"Click the link below to reset your RecallX password:\n{reset_link}\n\n"
-                "This link will expire soon and can only be used once. "
-                "If you didn't request this, you can safely ignore this email."
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
+                send_mail(
+                    subject="Reset your RecallX password",
+                    message=(
+                        f"Hi {user.username},\n\n"
+                        f"Click the link below to reset the password for your RecallX account "
+                        f"'{user.username}':\n{reset_link}\n\n"
+                        "This link will expire soon and can only be used once. "
+                        "If you didn't request this, you can safely ignore this email."
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+            except Exception:
+                # Log the real error for us, but keep the response generic for the user
+                logger.exception("Failed to send password reset email for user id %s", user.pk)
 
         return generic_response
 
