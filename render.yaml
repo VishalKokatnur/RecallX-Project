@@ -25,6 +25,12 @@ services:
         sync: false
       - key: GOOGLE_REDIRECT_URI
         value: https://recallx-backend.onrender.com/api/drive/callback/
+      - key: FRONTEND_URL
+        value: https://recallx-frontend.onrender.com
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
 
   - type: web
     name: recallx-frontend
