@@ -1,4 +1,3 @@
-frontend/src/pages/Upload.jsx
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
