@@ -15,6 +15,10 @@ const driveService = {
     const token = localStorage.getItem("access_token");
     window.location.href = `${API_ORIGIN}/api/drive/connect/?token=${token}`;
   },
+  async disconnect() {
+    const { data } = await api.post("/drive/disconnect/");
+    return data;
+  },
   async importFiles(files, accessToken, accessTokenScope) {
     const { data } = await api.post("/drive/import/", {
       files,
