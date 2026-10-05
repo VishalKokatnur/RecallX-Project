@@ -52,12 +52,12 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 border-t border-line">
           {FEATURES.map((f, i) => (
             <div
-              key={f.title}
-              className={`py-8 px-2 md:px-6 ${i > 0 ? "md:border-l border-line" : ""}`}
-            >
-              <h3 className="font-medium mb-2">{f.title}</h3>
-              <p className="text-sm text-muted leading-relaxed">{f.body}</p>
-            </div>
+  key={f.title}
+  className={`py-8 px-2 md:px-6 rounded-lg transition-all duration-200 hover:bg-ink/[0.03] hover:shadow-sm hover:-translate-y-0.5 ${i > 0 ? "md:border-l border-line" : ""}`}
+>
+  <h3 className="font-medium mb-2">{f.title}</h3>
+  <p className="text-sm text-muted leading-relaxed">{f.body}</p>
+</div>
           ))}
         </div>
       </section>
