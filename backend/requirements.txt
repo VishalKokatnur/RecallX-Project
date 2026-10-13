@@ -8,9 +8,6 @@ djangorestframework-simplejwt>=5.3
 psycopg[binary]>=3.1
 pgvector>=0.2.5
 dj-database-url>=2.1
-# AI / NLP
-sentence-transformers>=2.6
-torch>=2.2
 
 # Embeddings (local, ONNX - no hosted API needed)
 fastembed>=0.9
