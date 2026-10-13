@@ -12,6 +12,9 @@ dj-database-url>=2.1
 sentence-transformers>=2.6
 torch>=2.2
 
+# Embeddings (local, ONNX - no hosted API needed)
+fastembed>=0.9
+
 # File processing
 Pillow>=10.2
 PyMuPDF>=1.24

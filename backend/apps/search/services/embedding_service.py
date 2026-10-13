@@ -1,107 +1,95 @@
 """
-FR-09: Text chunk -> vector embedding via Hugging Face's free hosted Inference API.
-Also includes CLIP-based image/visual embeddings for image search.
+FR-09: Text chunk -> vector embedding, computed locally with ONNX Runtime (fastembed).
 
-Uses the Hugging Face Inference API instead of loading models locally, so the
-web process stays lightweight (no PyTorch/transformers/scipy/sklearn in memory).
-Requires the HF_API_TOKEN environment variable (a free "read" token from
-https://huggingface.co/settings/tokens).
+No hosted inference API and no PyTorch. Text embeddings use all-MiniLM-L6-v2.
+Visual (CLIP) embeddings are optional: set ENABLE_CLIP=1 to turn them on
+(they need more memory than a small free instance may have).
+Model files are cached in backend/.model_cache (override with EMBED_CACHE_DIR).
 """
 import os
-import time
+import threading
 
-import requests
+CACHE_DIR = os.environ.get(
+    "EMBED_CACHE_DIR",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".model_cache")),
+)
 
-HF_API_TOKEN = os.environ.get("HF_API_TOKEN", "")
-HF_API_URL = "https://router.huggingface.co/hf-inference/models/{model}/pipeline/feature-extraction"
 TEXT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-CLIP_MODEL = "sentence-transformers/clip-ViT-B-32"
+CLIP_TEXT_MODEL = "Qdrant/clip-ViT-B-32-text"
+CLIP_IMAGE_MODEL = "Qdrant/clip-ViT-B-32-vision"
+CLIP_ENABLED = os.environ.get("ENABLE_CLIP", "").lower() in ("1", "true", "yes")
+
+_lock = threading.Lock()
+_models = {}
 
 
-def _headers(content_type: str | None = None) -> dict:
-    headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
-    if content_type:
-        headers["Content-Type"] = content_type
-    return headers
+def _get(key, loader):
+    model = _models.get(key)
+    if model is None:
+        with _lock:
+            model = _models.get(key)
+            if model is None:
+                model = loader()
+                _models[key] = model
+    return model
 
 
-def _post_with_retry(url: str, **kwargs):
-    """
-    The free Inference API can return 503 with 'estimated_time' while a model
-    is cold-starting (it spins down when unused). Retry a few times so the
-    first request after a period of inactivity doesn't just fail outright.
-    Kept short (max ~45s) since some views make two of these calls back to
-    back and need to stay well under gunicorn's request timeout.
-    """
-    last_response = None
-    last_error = None
-    for _ in range(3):
-        try:
-            response = requests.post(url, timeout=20, **kwargs)
-        except requests.exceptions.RequestException as exc:
-            last_error = exc
-            time.sleep(5)
-            continue
-        if response.status_code != 503:
-            return response
-        last_response = response
-        wait_seconds = min(response.json().get("estimated_time", 5), 15)
-        time.sleep(wait_seconds)
-    if last_response is not None:
-        return last_response
-    raise last_error or RuntimeError("Hugging Face Inference API request failed with no response")
+def _require_clip():
+    if not CLIP_ENABLED:
+        raise RuntimeError("Visual (CLIP) embeddings are disabled. Set ENABLE_CLIP=1 to enable them.")
 
 
-def _mean_pool(output) -> list[float]:
-    """
-    The feature-extraction endpoint for sentence-transformers models returns
-    a nested list (per-token vectors) for some models, or a single flat
-    vector for others depending on the model's pipeline config. Normalize
-    to a single flat vector either way.
-    """
-    if isinstance(output, list) and output and isinstance(output[0], list):
-        if isinstance(output[0][0], list):
-            output = output[0]
-        n = len(output)
-        dim = len(output[0])
-        return [sum(row[i] for row in output) / n for i in range(dim)]
-    return output
+def _text_model():
+    def load():
+        from fastembed import TextEmbedding
+        return TextEmbedding(model_name=TEXT_MODEL, cache_dir=CACHE_DIR)
+    return _get("text", load)
+
+
+def _clip_text_model():
+    _require_clip()
+
+    def load():
+        from fastembed import TextEmbedding
+        return TextEmbedding(model_name=CLIP_TEXT_MODEL, cache_dir=CACHE_DIR)
+    return _get("clip_text", load)
+
+
+def _clip_image_model():
+    _require_clip()
+
+    def load():
+        from fastembed import ImageEmbedding
+        return ImageEmbedding(model_name=CLIP_IMAGE_MODEL, cache_dir=CACHE_DIR)
+    return _get("clip_image", load)
 
 
 def embed_text(text: str) -> list[float]:
-    url = HF_API_URL.format(model=TEXT_MODEL)
-    response = _post_with_retry(
-        url, headers=_headers("application/json"), json={"inputs": text}
-    )
-    response.raise_for_status()
-    return _mean_pool(response.json())
+    return next(iter(_text_model().embed([text]))).tolist()
 
 
 def embed_batch(texts: list[str]) -> list[list[float]]:
-    url = HF_API_URL.format(model=TEXT_MODEL)
-    response = _post_with_retry(
-        url, headers=_headers("application/json"), json={"inputs": texts}
-    )
-    response.raise_for_status()
-    data = response.json()
-    return [_mean_pool(item) for item in data]
+    if not texts:
+        return []
+    return [v.tolist() for v in _text_model().embed(texts)]
 
 
 def embed_image(file_path: str) -> list[float]:
     """CLIP image embedding - captures visual content (colors, layout, scene)."""
-    url = HF_API_URL.format(model=CLIP_MODEL)
-    with open(file_path, "rb") as f:
-        image_bytes = f.read()
-    response = _post_with_retry(url, headers=_headers(), data=image_bytes)
-    response.raise_for_status()
-    return _mean_pool(response.json())
+    return next(iter(_clip_image_model().embed([file_path]))).tolist()
 
 
 def embed_text_clip(text: str) -> list[float]:
     """CLIP text embedding - same vector space as embed_image, for visual search queries."""
-    url = HF_API_URL.format(model=CLIP_MODEL)
-    response = _post_with_retry(
-        url, headers=_headers("application/json"), json={"inputs": text}
-    )
-    response.raise_for_status()
-    return _mean_pool(response.json())
+    return next(iter(_clip_text_model().embed([text]))).tolist()
+
+
+def warm_up():
+    """Download/load models once (used at build time so requests don't pay for it)."""
+    embed_text("warm up")
+    if CLIP_ENABLED:
+        embed_text_clip("warm up")
+
+
+if __name__ == "__main__":
+    warm_up()
