@@ -1,8 +1,11 @@
 import io
+import logging
 
 from django.http import FileResponse, Http404
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
 from rest_framework.views import APIView
+from google.auth.exceptions import RefreshError
 from googleapiclient.errors import HttpError
 
 from .models import UploadedFile
@@ -10,6 +13,8 @@ from .serializers import UploadedFileSerializer
 from .services import validate_file, detect_file_type
 from apps.processing.tasks import process_file
 from apps.drive.services import download_file_from_drive
+
+logger = logging.getLogger(__name__)
 
 
 class FileListUploadView(generics.ListCreateAPIView):
@@ -59,13 +64,40 @@ class FileDownloadView(APIView):
         if instance.drive_file_id:
             token_obj = getattr(request.user, "drive_token", None)
             if not token_obj:
-                raise Http404("Google Drive is not connected for this account.")
+                return Response(
+                    {
+                        "detail": "Google Drive is not connected. Connect it from your Profile page.",
+                        "code": "drive_not_connected",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
             try:
                 file_bytes = download_file_from_drive(token_obj, instance.drive_file_id)
+            except RefreshError:
+                return Response(
+                    {
+                        "detail": "Your Google Drive connection has expired. Please reconnect it from your Profile page.",
+                        "code": "drive_reauth_required",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
             except HttpError as e:
-                if e.resp.status == 404:
+                code = e.resp.status
+                if code == 404:
                     raise Http404("File is no longer available on Google Drive.")
-                raise
+                if code == 401:
+                    return Response(
+                        {
+                            "detail": "Your Google Drive connection has expired. Please reconnect it from your Profile page.",
+                            "code": "drive_reauth_required",
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
+                logger.exception("Google Drive error while downloading file %s", instance.pk)
+                return Response(
+                    {"detail": "Google Drive returned an error. Please try again."},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
             return FileResponse(
                 io.BytesIO(file_bytes),
                 as_attachment=False,
